@@ -11743,6 +11743,10 @@ a.text-dark:hover, a.text-dark:focus {
   }
 }
 
+.addTicket-panel .alertMessage-items {
+  width: 70%;
+}
+
 .addTicket-panel .addTicket-btn {
   padding: 10px 40px;
 }

@@ -10,6 +10,7 @@ const addCardBtn = document.querySelector('.addTicket-btn');//新增票價
 const regionSearch = document.querySelector('.regionSearch')//篩選地區
 const list =document.querySelector('.list');
 const form =document.querySelector('form');//表單
+const alertMessage = document.querySelectorAll('.alertMessage');//表單警示
 const searchResult =document.querySelector('.searchResult')//剩餘資料比
 //data
 let data;
@@ -27,92 +28,82 @@ regionSearch.addEventListener('change',filterCard);//監聽地區
 // 星級區間是 1-10 分
 // 金額、組數、星級的 type 為 Number
 function filterCard(e){
-    let area = e.target.value   
-    render(area);
-}
-function addCard(){ //新增套票
-    if(!tickName.value||!imgUrl.value||!ticketRegion.value||!tickPrice.value||!ticketNum.value||!tickRate.value||!ticketDescription.value){
-        return
-    }
-    const obj={
-        "id": Date.now(),//亂數
-        "name":tickName.value,
-        "imgUrl": imgUrl.value,
-        "area": ticketRegion.value,
-        "description": ticketDescription.value,
-        "group": Number(ticketNum.value),
-        "price": Number(tickPrice.value),
-        "rate": Number(tickRate.value),
-    };
-    data.push(obj);
-    console.log(obj);
-    form.reset();//從置表單
-    regionSearch.value='全部';//新加入資料後讓篩選視窗跳回全部
-    render();
-}
-function render(area='全部'){//渲染畫面
-    let listStr ='';
-    let searchResultStr=''
+    let area = e.target.value
+    let filterArea=[];
     if(area==='全部'){
-        data.forEach(item=>{
-            searchResultStr++
-            listStr+=` 
-            <li class="card mr-md-7 mb-8">
-                <div class="position-relative">
-                    <a href="#" class="card-img--hidden">
-                        <img src="${item.imgUrl}" class="card-img-top" alt="...">
-                    </a>
-                    <div class="ticketCard-region position-absolute">${item.area}</div>
-                    <div class="ticketCard-rank position-absolute">${item.rate}</div>
-                </div>
-                <div class="card-body">
-                <h4 class="card-title text-primary text-bold border--Bottom pb-1 mb-5">
-                    ${item.name}
-                </h4>
-                <p class="card-text text-secondary">${item.description}</p>
-                <div class='d-flex justify-content-between align-items-center text-primary '>
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <p class='mb-0'>剩下最後${item.group}組</p>
-                    </div>
-                    <div class="d-flex align-items-center">
-                        <p class='mb-0'>TWD</p>
-                        <p class='h2 mb-0'>$${item.price}</p>
-                    </div>
-                </div>
-           </li>`
-    })}else{
+        render(data);
+    }else{
         data.forEach(item=>{
             if(item.area===area){
-                searchResultStr++
-                listStr+=` 
-                <li class="card mr-md-7 mb-8">
-                    <div class="position-relative">
-                        <a href="#" class="card-img--hidden">
-                            <img src="${item.imgUrl}" class="card-img-top" alt="...">
-                        </a>
-                        <div class="ticketCard-region position-absolute">${item.area}</div>
-                        <div class="ticketCard-rank position-absolute">${item.rate}</div>
-                    </div>
-                    <div class="card-body">
-                    <h4 class="card-title text-primary text-bold border--Bottom pb-1 mb-5">
-                        ${item.name}
-                    </h4>
-                    <p class="card-text text-secondary">${item.description}</p>
-                    <div class='d-flex justify-content-between align-items-center text-primary '>
-                        <div class="d-flex align-items-center">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <p class='mb-0'>剩下最後${item.group}組</p>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <p class='mb-0'>TWD</p>
-                            <p class='h2 mb-0'>$${item.price}</p>
-                        </div>
-                    </div>
-               </li>`
+                filterArea.push(item);
             }
-        });       
+        })
+        render(filterArea);
     }
+}
+// 渲染 innerHTML 的部分有重複，可以嘗試統一在 render() 函式執行渲染，篩選地區的判斷可以放在 filterCard（將篩選符合的地區放到另一個陣列中，再將陣列當成參數傳到 render() 渲染到網頁上）
+function addCard(){ //新增套票
+    if(!tickName.value||!imgUrl.value||!ticketRegion.value||!tickPrice.value||!ticketNum.value||!tickRate.value||!ticketDescription.value){
+        alertMessage.forEach(item=>{//顯示表單警示
+            item.innerHTML=`
+            <p class="alertMessage-items mb-0 text-bold">
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            <span>必填</span>
+        </p>`;
+        })
+        return
+    }else{
+        const obj={
+            "id": Date.now(),//亂數
+            "name":tickName.value.trim(),//避免左右空白
+            "imgUrl": imgUrl.value.trim(),//避免左右空白
+            "area": ticketRegion.value,
+            "description": ticketDescription.value.trim(),//避免左右空白
+            "group": Number(ticketNum.value),
+            "price": Number(tickPrice.value),
+            "rate": Number(tickRate.value),
+        };
+        data.push(obj);
+        alertMessage.forEach(item=>{ //表單警告隱藏
+            item.innerHTML='';
+        })
+        form.reset();//從置表單
+        regionSearch.value='全部';//新加入資料後讓篩選視窗跳回全部
+        render();//不需要帶入參數預設值已帶入data
+    }
+
+}
+function render(areaData=data){//渲染畫面
+    let listStr ='';
+    let searchResultStr=''
+    areaData.forEach(item=>{
+        searchResultStr++
+        listStr+=` 
+        <li class="card mr-md-7 mb-8">
+            <div class="position-relative">
+                <a href="#" class="card-img--hidden">
+                    <img src="${item.imgUrl}" class="card-img-top" alt="...">
+                </a>
+                <div class="ticketCard-region position-absolute">${item.area}</div>
+                <div class="ticketCard-rank position-absolute">${item.rate}</div>
+            </div>
+            <div class="card-body">
+            <h4 class="card-title text-primary text-bold border--Bottom pb-1 mb-5">
+                ${item.name}
+            </h4>
+            <p class="card-text text-secondary">${item.description}</p>
+            <div class='d-flex justify-content-between align-items-center text-primary '>
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p class='mb-0'>剩下最後${item.group}組</p>
+                </div>
+                <div class="d-flex align-items-center">
+                    <p class='mb-0'>TWD</p>
+                    <p class='h2 mb-0'>$${item.price}</p>
+                </div>
+            </div>
+       </li>`
+    })
     searchResult.innerHTML=`本次搜尋共${searchResultStr}筆資料`;
     list.innerHTML=listStr;
 }
